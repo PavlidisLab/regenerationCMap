@@ -18,6 +18,8 @@ devtools::load_all()
 
 # calculation attempt for instance 868 for logFC_E12_3_day_IP_vs_naive_3_days_IP
 # web interface results up=.133, down=-.188, score=.856
+# tests can be run at https://portals.broadinstitute.org/cmap/index.jsp
+# OganM username. Ones tagged 'real'
 
 # getting the top 250 genes from my data as the upregulated list. order should not matter but it is ordered from most DE to least DE
 # some irrelevant magic about turning genes into probeset occurs here
