@@ -1,13 +1,43 @@
 library(data.table)
 library(ogbox)
-library(XLConnect)
-library(GEOquery)
+library(readxl)
 library(dplyr)
 library(magrittr)
 library(devtools)
 # "complete genelist" is taken from erna directly
-hitlist = fread('data-raw/Complete_geneList_voom_limma.csv',data.table = FALSE)
-use_data(hitlist)
+options(java.parameters = "-Xmx1024m")
+
+unzip('data-raw/2013-092_CST_IPonly_2017_pipeline.zip',exdir = 'data-raw/ErnaData')
+
+genesVoomLimma = read_excel('data-raw/ErnaData/DEA/Complete_geneList_voom_limma.xlsx')
+genesLimma = read_excel('data-raw/ErnaData/DEA/Complete_geneList_limma.xlsx')
+genesEdger = read_excel('data-raw/ErnaData/DEA/Complete_geneList_EdgeR.xlsx')
+
+genesVoomLimmaRUVrk1 = read_excel('data-raw/ErnaData/DEA_RUVrk1/Complete_geneList_voom_limma.xlsx')
+genesLimmaRUVrk1 = read_excel('data-raw/ErnaData/DEA_RUVrk1/Complete_geneList_limma.xlsx')
+genesEdgerRUVrk1 = read_excel('data-raw/ErnaData/DEA_RUVrk1/Complete_geneList_EdgeR.xlsx')
+
+genesVoomLimmaNoOutlier = read_excel('data-raw/ErnaData/DEA_wo_3day_naive_IP1//Complete_geneList_voom_limma.xlsx')
+genesLimmaNoOutlier = read_excel('data-raw/ErnaData/DEA_wo_3day_naive_IP1/Complete_geneList_limma.xlsx')
+genesEdgerNoOutlier = read_excel('data-raw/ErnaData/DEA_wo_3day_naive_IP1/Complete_geneList_EdgeR.xlsx')
+
+use_data(genesVoomLimma)
+use_data(genesLimma)
+use_data(genesEdger)
+
+use_data(genesVoomLimmaRUVrk1)
+use_data(genesLimmaRUVrk1)
+use_data(genesEdgerRUVrk1)
+
+use_data(genesVoomLimmaNoOutlier)
+use_data(genesLimmaNoOutlier)
+use_data(genesEdgerNoOutlier)
+
+# sigGenesVoomLimma =  read_excel('data-raw/ErnaData/DEA/Significant_geneList_voom_limma_FDR0.1.xlsx')
+
+
+# hitlist = fread('data-raw/Complete_geneList_voom_limma.csv',data.table = FALSE)
+# use_data(hitlist)
 
 biocLite("ConnectivityMap")
 

@@ -80,8 +80,8 @@ orderedProbes = rownames(rankMatrix)[rankMatrix$inst_868 %>% order]
 # ascending order such that V(j) is the position of tag j, where j = 1, 2, ..., t." 
 # This is the tricky part. Position of tag j itselt is embedded in the formula
 # which causes order of probesets to matter
-Vpos = match(posList$Probe,orderedProbes)
-Vneg = match(negList$Probe,orderedProbes)
+Vpos = match(posList$Probe,orderedProbes) %>% sort
+Vneg = match(negList$Probe,orderedProbes) %>% sort
 
 # "compute the following 2 values" I don't really need the t here but wanted to keep the notation consistent
 a = function(V,t){
