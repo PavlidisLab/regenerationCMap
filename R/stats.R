@@ -1,45 +1,43 @@
 #' @export
-a = function(V,n){
-    t = length(V)
-    1:t %>% sapply(function(j){
-        g=j/t - V[j]/n
-    }) %>% max
+a =function(V,n){
+    V %<>% as.matrix
+    t = nrow(V)
+    if(nrow(V)==0){
+        return(0)
+    }
+    ((1:t)/t - V/n) %>% apply(2,max)
 }
+
 
 #' @export
 b = function(V,n){
-    t = length(V)
-    1:t %>% sapply(function(j){
-        V[j]/n - (j-1)/t
-    }) %>% max
+    V %<>% as.matrix
+    t = nrow(V)
+    if(nrow(V)==0){
+        return(0)
+    }
+    (V/n - (1:t - 1)/t) %>% as.matrix%>% apply(2,max)
 }
 
 
 #' @export
 ks = function(a,b){
-    if(a>b){
-        return(a)
-    } else if (b>a){
-        return(-b)
-    } else if(a == b){
-        return(0)
-    }
+    (a>b)*a + (b>a)*(-b)
 }
 
+#' @export
 ksCalc = function(V,n){
     a = a(V,n)
     b = b(V,n)
     return(ks(a,b))
 }
 
+
 #' @export
 score = function(kUp,kDown){
-    if(sign(kUp) == sign(kDown)){
-        return(0)
-    } else {
-        kUp - kDown
-    }
+    (sign(kUp)!=sign(kDown))*(kUp-kDown)
 }
+
 
 #' @export
 scoreCalc = function(Vup,Vdown,n){
@@ -51,5 +49,5 @@ scoreCalc = function(Vup,Vdown,n){
     bDown = b(Vdown,n)
     kDown = ks(aDown,bDown)
     score = score(kUp,kDown)
-    return(c(kUp = kUp, kDown = kDown,score = score))
+    return(data.frame(kUp = kUp, kDown = kDown,score = score,instance= colnames(Vup)))
 }
