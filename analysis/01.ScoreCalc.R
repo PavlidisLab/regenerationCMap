@@ -33,7 +33,6 @@ groups = c("E12_1_week_IP_vs_naive_adult_3_IP",
 #                 genesVoomLimmaNoOutlier= genesVoomLimmaNoOutlier,
 #                 genesLimmaNoOutlier = genesLimmaNoOutlier,
 #                 genesEdgerNoOutlier = genesEdgerNoOutlier)
-FDR_pVal_E12_1_week_IP_vs_naive_adult_3_IP
 datasets = c('genesVoomLimma',
              'genesVoomLimmaRUVrk1',
              'genesVoomLimmaNoOutlier',
