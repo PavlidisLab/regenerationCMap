@@ -4,12 +4,16 @@ library(dplyr)
 library(ogbox)
 library(lazyeval)
 library(homologene)
-library(purrr)
 library(parallel)
 library(ConnectivityMap)
 library(memoise)
+library(VennDiagram)
+library(gplots)
+library(pheatmap)
+library(purrr)
 data("rankMatrix")
 data("instances")
+library(UpSetR)
 devtools::load_all()
 
 FDRLimit = 0.05
@@ -23,6 +27,13 @@ groups = c("E12_1_week_IP_vs_naive_adult_3_IP",
            "naive_1_week_IP_vs_naive_adult_3_IP",
            "naive_2_weeks_IP_vs_naive_adult_3_IP",
            "naive_3_days_IP_vs_naive_adult_3_IP")
+
+groupShorthands = c("E12_1_week_IP_vs_naive_adult_3_IP" = 'regen 1 week',
+                    "E12_2_week_IP_vs_naive_adult_3_IP" = 'regen 2 week',
+                    "E12_3_day_IP_vs_naive_adult_3_IP" = 'regen 3 days',
+                    "naive_1_week_IP_vs_naive_adult_3_IP" = 'naive 1 week',
+                    "naive_2_weeks_IP_vs_naive_adult_3_IP" = 'naive 2 weeks',
+                    "naive_3_days_IP_vs_naive_adult_3_IP" = 'naive 3 days')
 
 # datasets = list(genesVoomLimma= genesVoomLimma,
 #                 genesLimma = genesLimma,
@@ -43,23 +54,48 @@ datasets = c('genesVoomLimma',
              'genesLimmaNoOutlier' ,
              'genesEdgerNoOutlier' )
 
+datasetShorthands = c('genesVoomLimma' = "VoLimma",
+                      'genesVoomLimmaRUVrk1' = "VoLimmaaRuv",
+                      'genesVoomLimmaNoOutlier' = "VoLimmanoOut",
+                      'genesLimma' = "Limma",
+                      'genesEdger' = "Edge",
+                      'genesLimmaRUVrk1' = "LimmaRUV",
+                      'genesEdgerRUVrk1' = 'EdgeRUV',
+                      'genesLimmaNoOutlier' = 'LimmanoOut',
+                      'genesEdgerNoOutlier' = 'EdgenoOut' )
+
 # groups = datasets %>% lapply(function(x){
 #     colnames(teval(x))[grepl('FDR',colnames(teval(x)))]
 # }
 # ) %>% unlist %>% unique
 
 
+# dataset  ='genesEdgerNoOutlier'
 dataset = 'genesVoomLimma'
 #group = 'naive_3_days_IP_vs_naive_adult_3_IP'
 #group = 'naive_2_weeks_IP_vs_naive_adult_3_IP'
+# group = 'naive_2_weeks_IP_vs_naive_adult_3_IP'
 group = 'E12_1_week_IP_vs_naive_adult_3_IP'
 dir.create('data-raw/tags', showWarnings = FALSE)
+
+dir.create(glue('analysis/results/enrichmentMonolith/'),recursive= TRUE,showWarnings = FALSE)
+dir.create(glue('analysis/results/heatmaps/'),recursive= TRUE,showWarnings = FALSE)
+
 datasets %>% mclapply(function(dataset){
     print(dataset)
-    dir.create(glue('analysis/results/{dataset}'),recursive= TRUE,showWarnings = FALSE)
+    dir.create(glue('analysis/results/enrichment/{dataset}'),recursive= TRUE,showWarnings = FALSE)
+    dir.create(glue('analysis/results/perturbagenHitlist/{dataset}'),recursive= TRUE,showWarnings = FALSE)
+    dir.create(glue('analysis/results/perturbagenSpecificHitlist/{dataset}'),recursive= TRUE,showWarnings = FALSE)
+    dir.create(glue('analysis/results/perturbagenHitlist01/{dataset}'),recursive= TRUE,showWarnings = FALSE)
+    dir.create(glue('analysis/results/perturbagenHitlistPos/{dataset}'),recursive= TRUE,showWarnings = FALSE)
+    dir.create(glue('analysis/results/perturbagenHitlistPos01/{dataset}'),recursive= TRUE,showWarnings = FALSE)
+    
+    
+    dir.create(glue('analysis/results/instanceScores/{dataset}'),recursive= TRUE,showWarnings = FALSE)
+    
     dir.create(glue('analysis/probes/{dataset}'),recursive= TRUE, showWarnings = FALSE)
     
-    groups %>% sapply(function(group){
+    results = groups %>% lapply(function(group){
         print(group)
         if(any(grepl('FDR_pVal',colnames(ogbox::teval(dataset))))){
             pVal = 'pVal_'
@@ -77,7 +113,7 @@ datasets %>% mclapply(function(dataset){
             unlist %>%
             mouse2human %>% {.$humanGene} %>% unique %>% 
             ogbox::gemmaProbesetMatch('data-raw/GemmaAnnots/GPL96')  #%>% 
-           #  {.[1:geneCountLimit,]} # this line is temporary and should be removed later
+        #  {.[1:geneCountLimit,]} # this line is temporary and should be removed later
         
         cat(upTags$Probe,file = glue('analysis/probes/{dataset}/{group}_upTags.grp'),sep='\n')
         
@@ -93,7 +129,7 @@ datasets %>% mclapply(function(dataset){
             unlist %>%
             mouse2human %>% {.$humanGene} %>% unique %>% 
             ogbox::gemmaProbesetMatch('data-raw/GemmaAnnots/GPL96')  #%>% 
-           # {.[1:min(geneCountLimit,nrow(.)),]} # this line is temporary and should be removed later
+        # {.[1:min(geneCountLimit,nrow(.)),]} # this line is temporary and should be removed later
         
         cat(downTags$Probe,file = glue('analysis/probes/{dataset}/{group}_downTags.grp'),sep='\n')
         
@@ -102,55 +138,288 @@ datasets %>% mclapply(function(dataset){
             return(NULL)
         }
         # instance = 'inst_7402'
-        Vup = rankMatrix[upTags$Probe,] %>% apply(2,sort)
-        Vdown = rankMatrix[downTags$Probe,] %>% apply(2,sort) 
-        scores = scoreCalc(Vup,Vdown,n)
         
-        # "Order all n probe sets by the extent of their differential expression for the current instance i"
-        # the data itself is in ranks so it is already ordered but lets do what they say
+        out = connectivityMapEnrichment(upTags$Probe,downTags$Probe, rankMatrix,instances,d = 100000)
         
-        # "p to be max( si) and q to be min( si) across all instances in the collection c"
-        p = max(scores$score)
-        q = min(scores$score)
+        out$chemScores$specificity = 1:nrow(out$chemScores) %>%  sapply(function(i){
+            chem = rownames(out$chemScores)[i]
+            enrichments = MSigDB_enrich %>% sapply(function(x){
+                x[chem,'enrichment']
+            })
+            sign = sign(out$chemScores[chem,'enrichment'])
+            if(sign==-1){
+                enrichments = enrichments[enrichments<=0]
+            } else if(sign ==1){
+                enrichments = enrichments[enrichments>=0]
+                
+            }
+            sum(abs(out$chemScores[chem,'enrichment']) < abs(enrichments))/length(enrichments)
+        })
         
-        scores %<>% mutate(ConScore = (score>0)*(score/p) + (score<0)*(-score/q))
+        out$chemScores$reliable = out$chemScores$nonNull>0.5 & out$chemScores$instanceCount > 1 
         
-        # "The Kolmogorov-Smirnov statistic is computed for the set of t instances
-        # in the list of all n instances in a result ordered in descending order of
-        # connectivity score and up score (see how connectivity score is
-        # calculated), giving an enrichment score ks0."
-        scores = scores %>% arrange(desc(ConScore),desc(kUp))
+        out$hits =  out$chemScores[out$chemScores$reliable ==TRUE & out$chemScores$FDR <0.05,] %>% {.[order(.$FDR),]} %>% rownames
+        out$hits01 =  out$chemScores[out$chemScores$reliable ==TRUE & out$chemScores$FDR <0.1,] %>% {.[order(.$FDR),]} %>% rownames
         
-        chems = instances$cmap_name %>% unique
+        out$hitsPos = out$chemScores[out$chemScores$reliable ==TRUE & out$chemScores$FDR <0.05 & out$chemScores$enrichment>0,] %>% {.[order(.$FDR),]} %>% rownames
+        out$hitsPos01 =  out$chemScores[out$chemScores$reliable ==TRUE & out$chemScores$FDR <0.1 & out$chemScores$enrichment>0,] %>% {.[order(.$FDR),]} %>% rownames
         
-        d = 100000
+        out$specificHits = out$chemScores[out$chemScores$reliable ==TRUE & out$chemScores$FDR <0.05 & out$chemScores$specificity<0.1,] %>% rownames
         
-        set.seed(1)
-        
-        
-        # to speed up permuations, whenever a new one is needed, just spew out the same one if size match
-   
-        
-        confidence = chems %>% sapply(function(chem){
-            print(chem)
-            chemInstances = rownames(instances)[instances$cmap_name %in% chem]
-            V = match(chemInstances,scores$instance) %>% sort
-            ks0 = ksCalc(V,nrow(instances))
-            
-            Vrandoms = memoRandomV(length(chemInstances),d)
-            ksPerm = memoKsCalc(Vrandoms,nrow(instances))
-            
-            q = sum(abs(ksPerm) >= abs(ks0))
-            p = q/d
-            
-            return(c(enrichment = ks0, p = p))
-        }) %>% t
-        
-        write.table(confidence,
-                    file = glue('analysis/results/{dataset}/{group}_enrichment.tsv'),
+        write.table(out$chemScores,
+                    file = glue('analysis/results/enrichment/{dataset}/{group}_enrichment.tsv'),
                     sep='\t',quote = FALSE,col.names=NA)
-        write.table(scores,
-                    file = glue('analysis/results/{dataset}/{group}_instanceScores.tsv'),
+        write.table(out$instanceScores,
+                    file = glue('analysis/results/instanceScores/{dataset}/{group}_instanceScores.tsv'),
                     sep='\t',quote = FALSE,col.names=NA)
-    },simplify= FALSE)
+        write.table(out$hits,
+                    file = glue('analysis/results/perturbagenHitlist/{dataset}/{group}_hitlists.tsv'),
+                    sep='\t',quote = FALSE,col.names=FALSE,row.names=FALSE)
+        
+
+        write.table(out$hits01,
+                    file = glue('analysis/results/perturbagenHitlist01/{dataset}/{group}_hitlists.tsv'),
+                    sep='\t',quote = FALSE,col.names=FALSE,row.names=FALSE)
+        
+        write.table(out$hitsPos,
+                    file = glue('analysis/results/perturbagenHitlistPos/{dataset}/{group}_hitlists.tsv'),
+                    sep='\t',quote = FALSE,col.names=FALSE,row.names=FALSE)
+        write.table(out$hitsPos01,
+                    file = glue('analysis/results/perturbagenHitlistPos01/{dataset}/{group}_hitlists.tsv'),
+                    sep='\t',quote = FALSE,col.names=FALSE,row.names=FALSE)
+        
+        return(out)
+    }# ,mc.cores= 6
+    )
+    names(results) = groups
+    
+    results =  results[(results %>% sapply(class))!='NULL']
+    
+    scores = results %>% purrr::map('chemScores') %>% purrr::map('enrichment') %>% as.df %>% as.matrix %>% cor(method = 'spearman') %>%
+    {diag(.) = NA;.}
+    
+    colnames(scores) %<>% replaceElement(dictionary =  groupShorthands) %$% newVector
+    rn(scores) = cn(scores)
+    
+    png(glue('analysis/results/heatmaps/{dataset}.png'),width = 1200,height = 800)
+    scores %>%
+        heatmap.2(trace='none',col = viridis::viridis(20),margins= c(14,14),main = dataset,symbreaks = FALSE)
+    dev.off()
+    
+    
+    results = results[(results %>% sapply(class))!='NULL']
+    monolith = do.call(cbind, purrr::map(results,'chemScores'))
+    
+    write.table(monolith,
+                file = glue::glue('analysis/results/enrichmentMonolith/{dataset}_monolith.tsv'),
+                sep='\t',quote = FALSE,col.names=NA)
+    
+    
+    
 },mc.cores = 9)
+
+files = list.files('analysis/results/enrichment/', recursive = TRUE,full.names = TRUE)
+names = list.files('analysis/results/enrichment/', recursive = TRUE)
+
+names %<>% sapply(function(x){
+    x %>% gsub(pattern = '_enrichment.tsv',replacement = '', x = .) %>% strsplit('/') %>% {.[[1]]} %>% 
+        replaceElement(groupShorthands) %$% newVector %>% replaceElement(datasetShorthands) %$% newVector %>%
+        paste(collapse =' ')
+})
+
+allEnrich = files %>% sapply(function(x){
+    data.table::fread(x,data.table = FALSE)$enrichment
+}) 
+
+colnames(allEnrich) = names
+
+# monolith heatmap -----------
+png(glue('analysis/results/heatmaps/monolithHeatmap.png'),width = 1400,height = 1200)
+
+annotCol = data.frame(Normalization = stringr::str_extract(names,'^.*?(?=\\s)'),
+                      group = stringr::str_extract(names,ogbox::regexMerge(groupShorthands,exact= TRUE)),stringsAsFactors = FALSE)
+rownames(annotCol) = colnames(allEnrich)
+
+annotColors = list(Normalization = annotCol$Normalization %>% replaceElement(c('Edge' = 'cyan',
+                                                                               'EdgeRUV' = 'blue1',
+                                                                               'EdgenoOut' = 'cadetblue4',
+                                                                               'Limma' = 'chartreuse',
+                                                                               'LimmaRUV' = 'chartreuse4',
+                                                                               'LimmanoOut' = 'aquamarine',
+                                                                               'VoLimma' = 'brown4',
+                                                                               'VoLimmanoOut' = 'coral',
+                                                                               'VoLimmaaRuv' = 'brown1')) %$% dictionary,
+                   group = annotCol$group %>% toColor %$% palette)
+
+allEnrich %>% cor(method = 'spearman') %>% {diag(.) = NA;.} %>% 
+    pheatmap(annotation_col =annotCol ,fontsize = 15,border_color = NA,
+             annotation_colors = annotColors,color = viridis::viridis(20))
+#heatmap.2(trace='none',col = viridis::viridis(20),margins= c(14,14),symbreaks = FALSE,cexCol = 1.1,cexRow = 1.1)
+dev.off()
+
+filesEnrichment =   list.files('analysis/results/enrichment/', recursive = FALSE,full.names = TRUE)
+datasetNames = basename(filesEnrichment)
+
+
+# this gets the definitive hitlist
+datasetEnrichments = filesEnrichment %>% 
+    sapply(function(x){
+        datasetFiles = list.files(x,full.names = TRUE)
+        out = datasetFiles %>% lapply(function(y){
+            read.design(y) %>% arrange(desc(reliable),FDR)
+        })
+        names(out) = basename(datasetFiles) %>% stringr::str_replace('_enrichment.tsv','') %>% replaceElement(groupShorthands) %$% newVector
+        
+        ineligableRegenPos = out[grepl(pattern = 'naive',names(out))] %>% sapply(function(y){
+            y %>% filter(reliable == TRUE & enrichment > 0 & FDR<0.1) %$% X
+        })
+        
+        ineligableNaivePos = out[grepl(pattern = 'regen',names(out))] %>% sapply(function(y){
+            y %>% filter(reliable == TRUE & enrichment > 0 & FDR<0.1) %$% X
+        })
+        
+        ineligableRegenNeg = out[grepl(pattern = 'regen',names(out))] %>% sapply(function(y){
+            y %>% filter(reliable == TRUE & enrichment < 0 & FDR<0.1) %$% X
+        })
+        
+        ineligableNaiveNeg = out[grepl(pattern = 'naive',names(out))] %>% sapply(function(y){
+            y %>% filter(reliable == TRUE & enrichment < 0 & FDR<0.1) %$% X
+        })
+        
+        topRegenMarkersPos = out[grepl(pattern = 'regen',names(out))] %>% sapply(function(y){
+            y %>% filter(!X %in% ineligableRegenPos & reliable==TRUE & enrichment > 0 & FDR <0.1) %$% X
+        },simplify = FALSE)
+        
+        topRegenMarkersNeg = out[grepl(pattern = 'regen',names(out))] %>% sapply(function(y){
+            y %>% filter(!X %in% ineligableRegenNeg & reliable==TRUE & enrichment < 0 & FDR <0.1) %$% X
+        },simplify = FALSE)
+        
+        return(list(topRegenMarkersPos = topRegenMarkersPos,
+                    topRegenMarkersNeg = topRegenMarkersNeg))
+        
+    },simplify=FALSE)
+names(datasetEnrichments) = basename(filesEnrichment)
+
+intersectList(datasetEnrichments$genesLimmaNoOutlier$topRegenMarkersPos[c('regen 1 week','regen 2 week')])
+
+
+# upsets ----------------
+
+files = list.files('analysis/results/perturbagenHitlist/', recursive = FALSE,full.names = TRUE)
+datasetHitlists = files %>% sapply(function(x){
+    datasetFiles = list.files(x,full.names = TRUE)
+    out = datasetFiles %>% sapply(function(y){
+        readLines(y)
+    })
+    names(out) = basename(datasetFiles) %>% stringr::str_replace('_hitlists.tsv','') %>% replaceElement(groupShorthands) %$% newVector
+    return(out)
+})
+
+names(datasetHitlists) = basename(files)
+
+dir.create('analysis/results/upsetWithinGroups')
+names(datasetHitlists) %>% sapply(function(x){
+    png(glue::glue('analysis/results/upsetWithinGroups/{x}.png'),width = 600,height = 600)
+    upset(UpSetR::fromList(datasetHitlists[[x]]),nsets = 6, text.scale = 2)
+    dev.off()
+})
+
+
+files = list.files('analysis/results/perturbagenHitlist01//', recursive = FALSE,full.names = TRUE)
+datasetHitlists = files %>% sapply(function(x){
+    datasetFiles = list.files(x,full.names = TRUE)
+    out = datasetFiles %>% sapply(function(y){
+        readLines(y)
+    })
+    names(out) = basename(datasetFiles) %>% stringr::str_replace('_hitlists.tsv','') %>% replaceElement(groupShorthands) %$% newVector
+    return(out)
+})
+
+names(datasetHitlists) = basename(files)
+
+
+dir.create('analysis/results/upsetWithinGroups01')
+names(datasetHitlists) %>% sapply(function(x){
+    png(glue::glue('analysis/results/upsetWithinGroups01/{x}.png'),width = 600,height = 600)
+    upset(UpSetR::fromList(datasetHitlists[[x]]),nsets = 6, text.scale = 2)
+    dev.off()
+})
+
+
+
+
+files = list.files('analysis/results/perturbagenHitlistPos//', recursive = FALSE,full.names = TRUE)
+datasetHitlists = files %>% sapply(function(x){
+    datasetFiles = list.files(x,full.names = TRUE)
+    out = datasetFiles %>% sapply(function(y){
+        readLines(y)
+    })
+    names(out) = basename(datasetFiles) %>% stringr::str_replace('_hitlists.tsv','') %>% replaceElement(groupShorthands) %$% newVector
+    return(out)
+})
+
+names(datasetHitlists) = basename(files)
+
+
+dir.create('analysis/results/upsetWithinGroupsPos')
+names(datasetHitlists) %>% sapply(function(x){
+    png(glue::glue('analysis/results/upsetWithinGroupsPos/{x}.png'),width = 600,height = 600)
+    upset(UpSetR::fromList(datasetHitlists[[x]]),nsets = 6, text.scale = 2)
+    dev.off()
+})
+
+
+
+files = list.files('analysis/results/perturbagenHitlistPos01//', recursive = FALSE,full.names = TRUE)
+datasetHitlists = files %>% sapply(function(x){
+    datasetFiles = list.files(x,full.names = TRUE)
+    out = datasetFiles %>% sapply(function(y){
+        readLines(y)
+    })
+    names(out) = basename(datasetFiles) %>% stringr::str_replace('_hitlists.tsv','') %>% replaceElement(groupShorthands) %$% newVector
+    return(out)
+})
+
+names(datasetHitlists) = basename(files)
+
+
+dir.create('analysis/results/upsetWithinGroupsPos01')
+names(datasetHitlists) %>% sapply(function(x){
+    png(glue::glue('analysis/results/upsetWithinGroupsPos01/{x}.png'),width = 600,height = 600)
+    upset(UpSetR::fromList(datasetHitlists[[x]]),nsets = 6, text.scale = 2)
+    dev.off()
+})
+# groupContrasts = names(datasetHitlists) %>% sapply(function(x){
+#     day3ExclusiveRegen = datasetHitlists[[x]]$`regen 3 days`[!datasetHitlists[[x]]$`regen 3 days` %in% datasetHitlists[[x]]$`naive 3 days`]
+#     week1ExclusiveRegen  = datasetHitlists[[x]]$`regen 1 week`[!datasetHitlists[[x]]$`regen 1 week` %in% datasetHitlists[[x]]$`naive 1 week`]
+#     
+#     
+#     regenLists = datasetHitlists[[x]][grepl(pattern = 'regen', names(datasetHitlists[[x]]))] %>% unlist %>% unique
+#     naiveList = datasetHitlists[[x]][grepl(pattern = 'naive', names(datasetHitlists[[x]]))] %>% unlist %>% unique
+#     commonList = intersect(regenLists,naiveList)
+#     exclusiveRegen = regenLists[!regenLists %in% commonList]
+#     exclusiveNaive = naiveList[!naiveList %in% commonList]
+#     return(list(exclusiveNaive = exclusiveNaive,
+#                 exclusiveRegen = exclusiveRegen,
+#                 commonList = commonList))
+# },simplify = FALSE)
+# 
+# groupContrasts %>% purrr::map('commonList') %>% fromList %>% upset(nsets = 9)
+
+# hitlistNames = list.files('analysis/results/perturbagenHitlist/', recursive = TRUE)
+# 
+# hitlistNames %<>% sapply(function(x){
+#     x %>% gsub(pattern = '_hitlists.tsv',replacement = '', x = .,perl = TRUE) %>% strsplit('/') %>% {.[[1]]} %>% 
+#         replaceElement(groupShorthands) %$% newVector %>% replaceElement(datasetShorthands) %$% newVector %>%
+#         paste(collapse =' ')
+# })
+# 
+# hitlists = files %>% sapply(function(x){
+#     print(x)
+#     readLines(x)
+# }) 
+# names(hitlists) = hitlistNames
+# 
+# hitlistNames
+# 
+# all(names == hitlistNames)

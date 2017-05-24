@@ -53,7 +53,7 @@ scoreCalc = function(Vup,Vdown,n){
 }
 
 #' @export
-connectivityMapEnrichment = function(upTags,downTags,rankMatrix,instances,d=100000){
+connectivityMapEnrichment = function(upTags,downTags,rankMatrix,instances,pAdjustMethod = 'fdr' ,d=100000){
     n = rankMatrix %>% nrow 
     Vup = rankMatrix[upTags,] %>% apply(2,sort)
     Vdown = rankMatrix[downTags,] %>% apply(2,sort) 
@@ -72,10 +72,10 @@ connectivityMapEnrichment = function(upTags,downTags,rankMatrix,instances,d=1000
     scores = scores %>% dplyr::arrange(desc(ConScore),desc(kUp))
     
     chems = instances$cmap_name %>% unique
-    
-    
+
     confidence = chems %>% sapply(function(chem){
-        print(chem)
+        # browser()
+        # print(chem)
         chemInstances = rownames(instances)[instances$cmap_name %in% chem]
         
         relevantInstances = scores %>% dplyr::filter(instance %in% chemInstances)
@@ -83,7 +83,7 @@ connectivityMapEnrichment = function(upTags,downTags,rankMatrix,instances,d=1000
         relevantUpCount = (relevantInstances$score>0) %>% sum
         relevantDownCount = (relevantInstances$score<0) %>% sum
         relevantMehCount = (relevantInstances$score==0) %>% sum
-        nonNull = (relevantUpCount>relevantDownCount)*relevantUpCount + 
+        nonNull = (relevantUpCount>=relevantDownCount)*relevantUpCount + 
             (relevantUpCount<relevantDownCount)*(relevantDownCount)
         nonNull = nonNull/nrow(relevantInstances)
         
@@ -96,8 +96,15 @@ connectivityMapEnrichment = function(upTags,downTags,rankMatrix,instances,d=1000
         q = sum(abs(ksPerm) >= abs(ks0))
         p = q/d
         
-        return(c(enrichment = ks0, p = p,nonNull = nonNull,instanceCount =  length(chemInstances)))
+        return(c(enrichment = ks0,
+                 p = p,
+                 nonNull = nonNull,
+                 instanceCount =  length(chemInstances)))
     }) %>% t
     
-    return(list(instanceScores = scores, chemScores = confidence))
+    confidence %<>% as.data.frame
+    confidence$FDR =  p.adjust(confidence$p,method = pAdjustMethod)
+    confidence = confidence[c('enrichment','p','FDR','nonNull','instanceCount')]
+    
+    return(list(instanceScores = as.data.frame(scores), chemScores = confidence))
 }

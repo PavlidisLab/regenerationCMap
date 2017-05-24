@@ -4,6 +4,7 @@ library(readxl)
 library(dplyr)
 library(magrittr)
 library(devtools)
+library(purrr)
 # "complete genelist" is taken from erna directly
 options(java.parameters = "-Xmx1024m")
 
@@ -40,6 +41,25 @@ use_data(genesEdgerNoOutlier)
 # use_data(hitlist)
 
 biocLite("ConnectivityMap")
+
+download.file('https://portals.broadinstitute.org/cmap/msigdb_gene_sets.zip',destfile = 'data-raw/msigdb_gene_sets.zip')
+unzip('data-raw/msigdb_gene_sets.zip',exdir = 'data-raw/')
+MsigUp = readLines('data-raw/msigdb_up_mapped_to_HG_U133A.gmt') %>% strsplit('\t')
+names = MsigUp %>% map_chr(1) %>% gsub(pattern = '_UP',replacement = '',x=.)
+
+MsigDown = readLines('data-raw/msigdb_dn_mapped_to_HG_U133A.gmt')%>% strsplit('\t')
+
+names2 = MsigDown %>% map_chr(1) %>% gsub(pattern = '_DN',replacement = '',x=.)
+
+assertthat::see_if(all(names==names2))
+
+MSigDB = lapply(1:length(MsigUp), function(i){
+    upTags = MsigUp[[i]][c(-1,-2)]
+    downTags = MsigDown[[i]][c(-1,-2)]
+    return(list(upTags = upTags,downTags = downTags))
+})
+names(MSigDB) = names
+devtools::use_data(MSigDB,overwrite = TRUE)
 
 # # cmap downloads do not actually require login
 # 
