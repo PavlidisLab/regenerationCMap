@@ -81,7 +81,7 @@ dir.create('data-raw/tags', showWarnings = FALSE)
 dir.create(glue('analysis/results/enrichmentMonolith/'),recursive= TRUE,showWarnings = FALSE)
 dir.create(glue('analysis/results/heatmaps/'),recursive= TRUE,showWarnings = FALSE)
 
-datasets %>% mclapply(function(dataset){
+allResults = datasets %>% mclapply(function(dataset){
     print(dataset)
     dir.create(glue('analysis/results/enrichment/{dataset}'),recursive= TRUE,showWarnings = FALSE)
     dir.create(glue('analysis/results/perturbagenHitlist/{dataset}'),recursive= TRUE,showWarnings = FALSE)
@@ -213,10 +213,15 @@ datasets %>% mclapply(function(dataset){
     write.table(monolith,
                 file = glue::glue('analysis/results/enrichmentMonolith/{dataset}_monolith.tsv'),
                 sep='\t',quote = FALSE,col.names=NA)
+    return(results)
     
     
     
 },mc.cores = 9)
+
+names(allResults) = datasets
+saveRDS(allResults,'analysis/allResults.rds')
+
 
 files = list.files('analysis/results/enrichment/', recursive = TRUE,full.names = TRUE)
 names = list.files('analysis/results/enrichment/', recursive = TRUE)
@@ -271,27 +276,27 @@ datasetEnrichments = filesEnrichment %>%
         names(out) = basename(datasetFiles) %>% stringr::str_replace('_enrichment.tsv','') %>% replaceElement(groupShorthands) %$% newVector
         
         ineligableRegenPos = out[grepl(pattern = 'naive',names(out))] %>% sapply(function(y){
-            y %>% filter(reliable == TRUE & enrichment > 0 & FDR<0.1) %$% X
+            y %>% filter(reliable == TRUE & enrichment > 0 & FDR<0.05) %$% X
         })
         
         ineligableNaivePos = out[grepl(pattern = 'regen',names(out))] %>% sapply(function(y){
-            y %>% filter(reliable == TRUE & enrichment > 0 & FDR<0.1) %$% X
+            y %>% filter(reliable == TRUE & enrichment > 0 & FDR<0.05) %$% X
         })
         
         ineligableRegenNeg = out[grepl(pattern = 'regen',names(out))] %>% sapply(function(y){
-            y %>% filter(reliable == TRUE & enrichment < 0 & FDR<0.1) %$% X
+            y %>% filter(reliable == TRUE & enrichment < 0 & FDR<0.05) %$% X
         })
         
         ineligableNaiveNeg = out[grepl(pattern = 'naive',names(out))] %>% sapply(function(y){
-            y %>% filter(reliable == TRUE & enrichment < 0 & FDR<0.1) %$% X
+            y %>% filter(reliable == TRUE & enrichment < 0 & FDR<0.05) %$% X
         })
         
         topRegenMarkersPos = out[grepl(pattern = 'regen',names(out))] %>% sapply(function(y){
-            y %>% filter(!X %in% ineligableRegenPos & reliable==TRUE & enrichment > 0 & FDR <0.1) %$% X
+            y %>% filter(!X %in% unlist(ineligableRegenPos) & reliable==TRUE & enrichment > 0 & FDR <0.05) %$% X
         },simplify = FALSE)
         
         topRegenMarkersNeg = out[grepl(pattern = 'regen',names(out))] %>% sapply(function(y){
-            y %>% filter(!X %in% ineligableRegenNeg & reliable==TRUE & enrichment < 0 & FDR <0.1) %$% X
+            y %>% filter(!X %in% unlist(ineligableRegenNeg) & reliable==TRUE & enrichment < 0 & FDR <0.05) %$% X
         },simplify = FALSE)
         
         return(list(topRegenMarkersPos = topRegenMarkersPos,
@@ -300,7 +305,10 @@ datasetEnrichments = filesEnrichment %>%
     },simplify=FALSE)
 names(datasetEnrichments) = basename(filesEnrichment)
 
+intersectList(datasetEnrichments$genesEdgerNoOutlier$topRegenMarkersPos[c('regen 1 week','regen 2 week')])
 intersectList(datasetEnrichments$genesLimmaNoOutlier$topRegenMarkersPos[c('regen 1 week','regen 2 week')])
+intersectList(datasetEnrichments$genesVoomLimmaNoOutlier$topRegenMarkersPos[c('regen 1 week','regen 2 week')])
+intersectList(datasetEnrichments$genesEdger$topRegenMarkersPos[c('regen 1 week','regen 2 week')])
 
 
 # upsets ----------------
