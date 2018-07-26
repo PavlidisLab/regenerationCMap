@@ -15,7 +15,7 @@ inst = readRDS('analysis/00.cmapRanks/instances.rds')
 rankMatrix = readRDS('analysis/00.cmapRanks/rankMatrix.rds')
 L1000geneAnnots = readRDS('analysis/00.cmapRanks/L1000geneAnnots.rds')
 L1000PreCalc = readRDS('analysis/00.cmapRanks/L1000PreCalc.rds')
-
+rownames(rankMatrix) = L1000geneAnnots$pr_gene_id
 gc()
 
 dataset = genesEdgerNoOutlier
@@ -70,7 +70,7 @@ groups %>% lapply(function(group){
         unlist %>%
         mouse2human %>% {.$humanGene} %>% unique 
     downTags = L1000geneAnnots %>% filter(pr_gene_symbol %in% downGenes) %$% pr_gene_id
-    
+    print('up-genes down-genes acquired')
     analysis = connectivityMapEnrichment(upTags,
                                          downTags,
                                          rankMatrix,

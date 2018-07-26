@@ -52,7 +52,10 @@ print('data saved')
 
 
 
-# nathaniel's version
-"/home/omancarci/allDirs/home/nlim/MDE/RScripts/DataFreeze/Packaged/LINCS/GSE92742/fc.matrix.RDS.XZ"
-natInstances = readRDS("/home/nlim/MDE/RScripts/DataFreeze/Packaged/LINCS/GSE92742/Interim/final.assign.mapping.RDS.XZ")
-nat = readRDS("/home/nlim/MDE/RScripts/DataFreeze/Packaged/LINCS/GSE92742/Interim/sample.mapping.RDS.XZ")
+# # nathaniel's version
+# natMat = readRDS("/home/nlim/MDE/RScripts/DataFreeze/Packaged/LINCS/GSE92742/fc.matrix.RDS.XZ")
+# natInstances = readRDS("/home/nlim/MDE/RScripts/DataFreeze/Packaged/LINCS/GSE92742/Interim/final.assign.mapping.RDS.XZ")
+# nat = readRDS("/home/nlim/MDE/RScripts/DataFreeze/Packaged/LINCS/GSE92742/Interim/sample.mapping.RDS.XZ")
+# 
+# gc()
+

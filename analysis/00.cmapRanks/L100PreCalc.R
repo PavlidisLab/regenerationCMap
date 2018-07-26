@@ -5,6 +5,10 @@ L1000geneAnnots = readRDS('analysis/00.cmapRanks/L1000geneAnnots.rds')
 inst = readRDS('analysis/00.cmapRanks/instances.rds')
 rankMatrix = readRDS('analysis/00.cmapRanks/rankMatrix.rds')
 
+# one time. delete later
+rownames(rankMatrix) = L1000geneAnnots$pr_gene_id
+saveRDS('analysis/00.cmapRanks/rankMatrixWithRownames.rds')
+
 library(cmapQuery)
 library(dplyr)
 library(magrittr)
