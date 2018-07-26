@@ -37,6 +37,8 @@ print('Removed unreliable experiments')
 
 rankMatrix = deMatrix %>% apply(2,frankv,order = -1)
 
+rownames(rankMatrix) = rownames(deMatrix)
+
 print('ranks calcualted')
 
 saveRDS(rankMatrix,file = 'analysis/00.cmapRanks/rankMatrix.rds',compress= 'bzip2')
@@ -52,5 +54,5 @@ print('data saved')
 
 # nathaniel's version
 "/home/omancarci/allDirs/home/nlim/MDE/RScripts/DataFreeze/Packaged/LINCS/GSE92742/fc.matrix.RDS.XZ"
-hede = readRDS("/home/nlim/MDE/RScripts/DataFreeze/Packaged/LINCS/GSE92742/Interim/final.assign.mapping.RDS.XZ")
-hodo = readRDS("/home/nlim/MDE/RScripts/DataFreeze/Packaged/LINCS/GSE92742/Interim/sample.mapping.RDS.XZ")
+natInstances = readRDS("/home/nlim/MDE/RScripts/DataFreeze/Packaged/LINCS/GSE92742/Interim/final.assign.mapping.RDS.XZ")
+nat = readRDS("/home/nlim/MDE/RScripts/DataFreeze/Packaged/LINCS/GSE92742/Interim/sample.mapping.RDS.XZ")

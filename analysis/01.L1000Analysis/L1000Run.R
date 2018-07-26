@@ -1,6 +1,13 @@
+print(Sys.getpid())
+library(dplyr)
+library(cmapQuery)
+library(magrittr)
+library(glue)
+library(homologene)
 
 dir.create('analysis/01.L1000Analysis/L1000Results/chemScores',showWarnings = FALSE)
 dir.create('analysis/01.L1000Analysis/L1000Results/instanceScores',showWarnings = FALSE)
+
 
 print("loading data")
 load('data/genesEdgerNoOutlier.rda')
@@ -8,6 +15,8 @@ inst = readRDS('analysis/00.cmapRanks/instances.rds')
 rankMatrix = readRDS('analysis/00.cmapRanks/rankMatrix.rds')
 L1000geneAnnots = readRDS('analysis/00.cmapRanks/L1000geneAnnots.rds')
 L1000PreCalc = readRDS('analysis/00.cmapRanks/L1000PreCalc.rds')
+
+gc()
 
 dataset = genesEdgerNoOutlier
 
