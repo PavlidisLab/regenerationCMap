@@ -90,11 +90,11 @@ saveRDS(natRankMatrix, 'analysis/00.cmapRanks/NatRankMatrix.rds')
 # fwd version
 fwdCMAP = cmapR::parse.gctx('data-raw/CD_signatures_full_42809x22268.gctx')
 gc()
+instances = readr::read_csv('data-raw/Drugs_metadata.csv')
 fwdMetadata = readr::read_csv('data-raw/CD_signature_metadata.csv')
 fwdMetadata %<>% mutate(pert_iname =  instances$pert_iname[match(pert_id,instances$pert_id)])
 fwdGeneAnnots = readr::read_csv('data-raw/Probes_full_metadata.csv')
 fwdMatrix = fwdCMAP@mat
-instances = readr::read_csv('data-raw/Drugs_metadata.csv')
 
 L1000geneAnnots = readr::read_tsv('/space/scratch/nlim/LINCS/GSE92742-Level5/Gene_Info.txt')
 L1000geneAnnots %<>% filter(pr_is_bing == 1)
@@ -111,7 +111,7 @@ rownames(fwdRanks) = colnames(fwdMatrix)
 all(colnames(fwdRanks) == fwdMetadata$sig_id)
 
 
-saveRDS(fwdMatrix,'analysis/00.cmapRanks/FWDranks.rds')
+saveRDS(fwdRanks,'analysis/00.cmapRanks/FWDranks.rds')
 saveRDS(fwdGeneAnnots,'analysis/00.cmapRanks/FWDgeneAnnots.rds')
 saveRDS(fwdMetadata,'analysis/00.cmapRanks/FWDinstances.rds')
 

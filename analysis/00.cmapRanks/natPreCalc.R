@@ -15,12 +15,12 @@ if(calculateKs){
     print('pre-calcing random Ks')
     L1000PreCalc = preCalcRandomKs(inst$chem)
     
-    saveRDS(L1000PreCalc,'analysis/00.cmapRanks/L1000PreCalc.rds')
+    saveRDS(L1000PreCalc,'analysis/00.cmapRanks/NatPreCalc.rds')
 }
 
 
 if(calculateSpecificity){
-    L1000PreCalc = readRDS('analysis/00.cmapRanks/L1000PreCalc.rds')
+    L1000PreCalc = readRDS('analysis/00.cmapRanks/NatPreCalc.rds')
     
     print('getting msigdb groups')
     
