@@ -1,8 +1,9 @@
 print(Sys.getpid())
 print('reading data')
-
+# nats genes are same as L1000
 L1000geneAnnots = readRDS('analysis/00.cmapRanks/L1000geneAnnots.rds')
-inst = readRDS('analysis/00.cmapRanks/instances.rds')
+inst = readRDS('analysis/00.cmapRanks/NatInstances.rds')
+
 
 
 library(cmapQuery)
@@ -12,7 +13,7 @@ calculateKs = TRUE
 calculateSpecificity = FALSE
 if(calculateKs){
     print('pre-calcing random Ks')
-    L1000PreCalc = preCalcRandomKs(inst$pert_iname)
+    L1000PreCalc = preCalcRandomKs(inst$chem)
     
     saveRDS(L1000PreCalc,'analysis/00.cmapRanks/L1000PreCalc.rds')
 }
@@ -23,8 +24,7 @@ if(calculateSpecificity){
     
     print('getting msigdb groups')
     
-    rankMatrix = readRDS('analysis/00.cmapRanks/rankMatrix.rds')
-    
+    rankMatrix = readRDS('analysis/00.cmapRanks/NatRankMatrix.rds')
     
     gpl96 = gemmaAPI::getAnnotation('GPL96')
     MSigDBLegacyL1000IDs = MSigDBLegacy %>% lapply(function(x){
@@ -37,10 +37,10 @@ if(calculateSpecificity){
     })
     print('pre-calcing specificity for legacy msigdb')
     L1000MsigDBLegacyPreCalc = specificityPreCalculation(signatures = MSigDBLegacyL1000IDs,
-                                                   rankMatrix = rankMatrix,
-                                                   chems = inst$pert_iname,
-                                                   preCalc = L1000PreCalc,
-                                                   cores = 2)
+                                                         rankMatrix = rankMatrix,
+                                                         chems = inst$pert_iname,
+                                                         preCalc = L1000PreCalc,
+                                                         cores = 2)
     saveRDS(L1000MsigDBPreCalc,'analysis/00.cmapRanks/L1000MsigDBLegacyPreCalc.rds')
     
     # print('pre-calcing specificity for new msigdb')

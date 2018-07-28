@@ -109,11 +109,8 @@ randomV = function(length,d){
 memoRandomV = memoise(randomV)
 memoKsCalc = memoise(ksCalc)
 
-chems = instances$cmap_name %>% unique
-instanceLengths = chems %>% sapply(function(chem){
-    chemInstances = rownames(instances)[instances$cmap_name %in% chem]
-    length(chemInstances)
-})
+instanceLenghts = table(instances$cmap_name)
+
 
 allVRandoms = instanceLengths %>% unique %>% sapply(function(x){
     print(x)
