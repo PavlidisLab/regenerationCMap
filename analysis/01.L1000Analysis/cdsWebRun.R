@@ -62,7 +62,7 @@ groups %>% lapply(function(group){
         mouse2human %>% {.$humanGene} %>% unique 
     
     results = cmapQuery::L1000CDS2(upGenes,downGenes)
-    write.table(results$topMeta,
+    write.table(results$topMeta[-c(10,11)],
                 file = glue('analysis/01.L1000Analysis/cdsWebRun/{groupShorthands[group]}'))
 
 })

@@ -12,11 +12,15 @@ dir.create('analysis/01.L1000Analysis/L1000Results/instanceScores',showWarnings 
 print("loading data")
 load('data/genesEdgerNoOutlier.rda')
 inst = readRDS('analysis/00.cmapRanks/instances.rds')
-rankMatrix = readRDS('analysis/00.cmapRanks/rankMatrix.rds')
+rankMatrixL1000 = readRDS('analysis/00.cmapRanks/rankMatrix.rds')
 L1000geneAnnots = readRDS('analysis/00.cmapRanks/L1000geneAnnots.rds')
 L1000PreCalc = readRDS('analysis/00.cmapRanks/L1000PreCalc.rds')
-rownames(rankMatrix) = L1000geneAnnots$pr_gene_id
+rownames(rankMatrixL1000) = L1000geneAnnots$pr_gene_id
 gc()
+
+# fineSubset = inst$pert_iname=='milrinone' & inst$cell_id %in% c('MCF7','PC3') & inst$pert_time <=6
+# inst0 = inst[fineSubset,]
+# rankMatrixL10000 = rankMatrixL1000[,fineSubset]
 
 dataset = genesEdgerNoOutlier
 
@@ -73,8 +77,8 @@ groups %>% lapply(function(group){
     print('up-genes down-genes acquired')
     analysis = connectivityMapEnrichment(upTags,
                                          downTags,
-                                         rankMatrix,
-                                         inst$pert_iname,
+                                         rankMatrixL10000,
+                                         inst0$pert_iname,
                                          preCalc = L1000PreCalc,
                                          vocal = TRUE)
     

@@ -133,27 +133,44 @@ instPavlab = readRDS('analysis/00.cmapRanks/NatInstances.rds')
 instFWD =  readRDS('analysis/00.cmapRanks/FWDinstances.rds')
 
 
-cmapSubset =instances %>% filter(tolower(cmap_name) %in% chems) %>% arrange(`cmap_name`)
+cmapSubset =instances %>% tibble::rownames_to_column() %>% filter(tolower(cmap_name) %in% chems) %>% arrange(`cmap_name`)
 L1000Subset = instL1000 %>% filter(tolower(pert_iname) %in% chems & cell_id %in% unique(cmapSubset$cell2)) %>% arrange(`pert_iname`)
 pavlabSubset = instPavlab %>% filter(tolower(chem) %in% chems & cellLine %in% unique(cmapSubset$cell2)) %>% arrange(`chem`)
 fwdSubset = instFWD %>% tibble::rownames_to_column() %>% filter(tolower(pert_iname) %in% chems & cell_id %in% unique(cmapSubset$cell2)) %>% arrange(`pert_iname`)
 
 data("rankMatrix")
+cmapRankSubset = rankMatrix[,cmapSubset$rowname]
+gpl96 = gemmaAPI::getAnnotation('GPL96')
+rankMedian = cmapRankSubset %>%unlist %>%median
+# get the probesets at the highest extremes in general
+extremeProbes = abs(cmapRankSubset- rankMedian) %>% apply(1,sum) %>% sort(decreasing = TRUE)
+useProbes = gemmaAPI::annotationGeneMatch(names(extremeProbes),gpl96) %>% duplicated %>% not %>% {extremeProbes[.]} %>% names
+useProbes = gemmaAPI::annotationGeneMatch(useProbes,gpl96) %>% {.[!is.na(.)]} %>% names
+cmapRankSubset = cmapRankSubset[useProbes,]
+rownames(cmapRankSubset) = gemmaAPI::annotationGeneMatch(rownames(cmapRankSubset),gpl96)
+
 
 rankMatrixL1000 = readRDS('analysis/00.cmapRanks/rankMatrix.rds')
+L1000geneAnnots = readRDS('analysis/00.cmapRanks/L1000geneAnnots.rds')
+L1000RankSubset = rankMatrixL1000[,L1000Subset$sig_id]
+# genes = L1000geneAnnots[match(rownames(L1000RankSubset),L1000geneAnnots$pr_gene_id),]$pr_gene_symbol
+genes = L1000geneAnnots$pr_gene_symbol
+rownames(L1000RankSubset) = genes
+L1000RankSubset = L1000RankSubset[L1000geneAnnots$pr_is_lm ==1,]
 
-instL1000 %>% filter(pert_iname == 'milrinone')  %>% View
+commonGenes = ogbox::intersectMult(rownames(L1000RankSubset),rownames(cmapRankSubset))
 
-data('rankMatrix')
+cmapRankSubsetCommon = cmapRankSubset[commonGenes,]
+L1000RankSubsetCommon = L1000RankSubset[commonGenes,]
 
-instances %>% filter(cmap_name == 'milrinone')
+colnames(cmapRankSubsetCommon) = paste('cmap',cmapSubset$cmap_name,cmapSubset$cell2,cmapSubset$duration..h.,'h')
+colnames(L1000RankSubsetCommon) = paste('l1000',L1000Subset$pert_iname,L1000Subset$cell_id,L1000Subset$pert_itime)
 
+cbind(cmapRankSubsetCommon,L1000RankSubsetCommon) %>% cor(method = 'spearman') %>% {diag(.) = NA;.}%>% pheatmap::pheatmap()
 
+cor(L1000RankSubsetCommon,cmapRankSubsetCommon,method = 'spearman') %>% pheatmap::pheatmap(cluster_rows = F,cluster_cols = F)
 
-
-
-
-
+L1000RankSubset[,]
 
 allResults$CMAP$`regen 1 week` %>% filter(tolower(X1) %in% chems)
 allResults$CMAP$`regen 2 week` %>% filter(X1 %in% chems)
