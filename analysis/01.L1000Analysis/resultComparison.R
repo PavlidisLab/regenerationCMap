@@ -5,6 +5,7 @@ library(cowplot)
 library(patchwork)
 library(glue)
 library(ConnectivityMap)
+library(rlang)
 
 groups = c("E12_1_week_IP_vs_naive_adult_3_IP",
            "E12_2_week_IP_vs_naive_adult_3_IP",
@@ -125,6 +126,30 @@ names(allResults) %>% lapply(function(resultName){
 names(usedChems) = names(allResults)
 
 
+instances = list(L1000 =  readRDS('analysis/00.cmapRanks/instances.rds'),
+     Pavlab = readRDS('analysis/00.cmapRanks/NatInstances.rds'),
+     FWDData =  readRDS('analysis/00.cmapRanks/FWDinstances.rds'))
+
+# FWD seems to have changed some inames. not sure why but they are recognizable by their pert_ids
+
+validChems = instances$L1000  %>% filter(pert_type %in% c('trt_cp','trt_lig')) %>% select(pert_iname,pert_id) %>% unlist %>% unique
+validChems = c(validChems,instances$FWDData %>% filter(pert_id %in% validChems) %$% pert_iname) %>% unique
+
+hitlists = names(allResults)[1:4] %>%  lapply(function(resultName){
+    names(allResults[[resultName]])[4:6] %>% lapply(function(groupName){
+        nm = unname(nameCol[resultName])
+        nmcol = rlang::sym(nm)
+        frame = allResults[[resultName]][[groupName]]
+        # frame %>% filter(enrichment > sort(frame$enrichment,decreasing = TRUE)[100] & reliable)
+        frame %<>% filter(enrichment > 0 & reliable & enrichment>0.5 & p<0.1)
+        if(resultName!='CMAP'){
+            frame %<>% filter(!!nmcol %in% validChems) #  %>% filter(!grepl('^(BRD)',!!nmcol))
+        }
+        return(frame)
+    }) %>% purrr::map(nameCol[resultName]) %>% ogbox::intersectList()
+})
+
+names(hitlists) = c('cmap','L1000','nat','fwd')
 
 
 instL1000 = readRDS('analysis/00.cmapRanks/instances.rds')
