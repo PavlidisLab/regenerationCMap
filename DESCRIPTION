@@ -14,3 +14,5 @@ Imports:
     dplyr,
     memoise,
     ogbox
+Depends: 
+    R (>= 2.10)
