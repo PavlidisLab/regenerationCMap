@@ -13,6 +13,10 @@ Imports:
     magrittr,
     dplyr,
     memoise,
-    ogbox
+    usethis
+Remotes:
+    bioc::3.17/ConnectivityMap,
+    oganm/ogbox,
+    oganm/MSigDB@4990275
 Depends: 
     R (>= 2.10)
