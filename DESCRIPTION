@@ -16,6 +16,7 @@ Imports:
     usethis
 Remotes:
     bioc::3.17/ConnectivityMap,
-    oganm/ogbox
+    oganm/ogbox,
+    bioc::3.17/gemma.R
 Depends: 
     R (>= 2.10)
