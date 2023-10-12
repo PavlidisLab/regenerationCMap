@@ -43,7 +43,7 @@ gemmaAPI::getAnnotation('GPL96',file = 'data-raw/GemmaAnnots/GPL96',overwrite = 
 
 
 
-# save the randomized matrices for quick calculation
+# save the randomized matrices for quick calculation --------
 library(memoise)
 library(ConnectivityMap)
 load_all()
@@ -73,3 +73,16 @@ usethis::use_data(memoRandomV,overwrite = TRUE)
 usethis::use_data(memoKsCalc,overwrite = TRUE)
 
 ksPerm = ksCalc(Vrandoms,nrow(instances))
+
+# precalculate msgibdb enrichment --------------
+
+MSigDB_enrich = MSigDB %>% mclapply(function(signature){
+    print(signature$name)
+    upTags = signature$upTags 
+    
+    downTags = signature$downTags
+    
+    out = connectivityMapEnrichment(upTags,downTags, rankMatrix,instances,d = 100000)
+    return(out$chemScores)
+},mc.cores=16)
+usethis::use_data(MSigDB_enrich)
