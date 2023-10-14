@@ -13,10 +13,23 @@ Imports:
     magrittr,
     dplyr,
     memoise,
-    usethis
+    usethis,
+    glue,
+    lazyeval,
+    homologene,
+    parallel,
+    memoise,
+    VennDiagram,
+    gplots,
+    pheatmap,
+    purrr,
+    UpSetR,
+    rhdf5
 Remotes:
     bioc::3.17/ConnectivityMap,
     oganm/ogbox,
-    bioc::3.17/gemma.R
+    bioc::3.17/gemma.R,
+    bioc::3.17/cmapR,
+    oganm/cmapQuery
 Depends: 
     R (>= 2.10)
