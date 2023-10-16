@@ -6,6 +6,8 @@ library(magrittr)
 library(devtools)
 library(purrr)
 library(usethis)
+library(rhdf5)
+library(cmapR)
 # "complete genelist" is taken from erna directly
 options(java.parameters = "-Xmx1024m")
 
@@ -24,7 +26,6 @@ names = MsigUp %>% map_chr(1) %>% gsub(pattern = '_UP',replacement = '',x=.)
 
 MsigDown = readLines('data-raw/msigdb_dn_mapped_to_HG_U133A.gmt')%>% strsplit('\t')
 
-assertthat::see_if(all(names==names2))
 
 MSigDB = lapply(1:length(MsigUp), function(i){
     upTags = MsigUp[[i]][c(-1,-2)]
@@ -86,3 +87,9 @@ MSigDB_enrich = MSigDB %>% mclapply(function(signature){
     return(out$chemScores)
 },mc.cores=16)
 usethis::use_data(MSigDB_enrich)
+
+
+
+
+
+
