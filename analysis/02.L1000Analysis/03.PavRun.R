@@ -1,25 +1,25 @@
 print(Sys.getpid())
+devtools::load_all()
 library(dplyr)
 library(cmapQuery)
 library(magrittr)
 library(glue)
 library(homologene)
 
-dir.create('analysis/01.L1000Analysis/natResults/chemScores',showWarnings = FALSE, recursive = TRUE)
-dir.create('analysis/01.L1000Analysis/natResults/instanceScores',showWarnings = FALSE, recursive = TRUE)
+dir.create('analysis/01.L1000Analysis/pavResults/chemScores',showWarnings = FALSE, recursive = TRUE)
+dir.create('analysis/01.L1000Analysis/pavResults/instanceScores',showWarnings = FALSE, recursive = TRUE)
 
 
 print("loading data")
 load('data/genesEdgerNoOutlier.rda')
-inst = readRDS('analysis/00.cmapRanks/NatInstances.rds')
-rankMatrix = readRDS('analysis/00.cmapRanks/NatRankMatrix.rds')
+inst = readRDS('data-raw/pav_data/pavInstances.rds')
+rankMatrix = readRDS('data-raw/pav_data/pavRankMatrix.rds')
 
 
-L1000geneAnnots = readRDS('analysis/00.cmapRanks/NatGeneAnnots.rds')
-L1000PreCalc = readRDS('analysis/00.cmapRanks/NatPreCalc.rds')
+L1000geneAnnots = readRDS('data-raw/pav_data/pavGeneAnnots.rds')
+L1000PreCalc = readRDS('data-raw/pav_data/pavPreCalc.rds')
 gc()
 
-dataset = genesEdgerNoOutlier
 
 groups = c("E12_1_week_IP_vs_naive_adult_3_IP",
            "E12_2_week_IP_vs_naive_adult_3_IP",
@@ -42,7 +42,7 @@ print('staring run')
 
 groups %>% lapply(function(group){
     print(group)
-    if(any(grepl('FDR_pVal',colnames(dataset)))){
+    if(any(grepl('FDR_pVal',colnames(dif_exp_data)))){
         pVal = 'pVal_'
     } else{
         pVal = ''
@@ -51,7 +51,7 @@ groups %>% lapply(function(group){
                                          FC = as.name(glue('logFC_{group}')),
                                          Pval =  as.name(glue('FDR_{pVal}{group}')))
     
-    upGenes = dataset %>%
+    upGenes = dif_exp_data %>%
         dplyr::filter_(filter_criteriaUp) %>% 
         dplyr::arrange_(.dots = c(glue('desc(logFC_{group})'))) %>% # this line won't be necessary later on
         dplyr::select(gene) %>% 
@@ -64,7 +64,7 @@ groups %>% lapply(function(group){
                                            FC = as.name(glue('logFC_{group}')),
                                            Pval =  as.name(glue('FDR_{pVal}{group}')))
     
-    downGenes = dataset %>%
+    downGenes = dif_exp_data %>%
         dplyr::filter_(filter_criteriaDown) %>% 
         dplyr::arrange_(.dots = c(glue('logFC_{group}'))) %>% # this line won't be necessary later on
         dplyr::select(gene) %>% 
@@ -81,8 +81,8 @@ groups %>% lapply(function(group){
     
     print('finished run. writing to file')
     write.table(analysis$chemScores,
-                file = glue('analysis/01.L1000Analysis/natResults/chemScores/{groupShorthands[group]}'))
+                file = glue('analysis/02.L1000Analysis/pavResults/chemScores/{groupShorthands[group]}'))
     write.table(analysis$instanceScores,
-                file = glue('analysis/01.L1000Analysis/natResults/instanceScores/{groupShorthands[group]}'))
+                file = glue('analysis/02.L1000Analysis/pavResults/instanceScores/{groupShorthands[group]}'))
     
 })

@@ -1,28 +1,25 @@
 print(Sys.getpid())
+devtools::load_all()
 library(dplyr)
 library(cmapQuery)
 library(magrittr)
 library(glue)
 library(homologene)
 
-dir.create('analysis/01.L1000Analysis/L1000Results/chemScores',showWarnings = FALSE)
-dir.create('analysis/01.L1000Analysis/L1000Results/instanceScores',showWarnings = FALSE)
-
+dir.create('analysis/02.L1000Analysis/L1000Results/chemScores',showWarnings = FALSE)
+dir.create('analysis/02.L1000Analysis/L1000Results/instanceScores',showWarnings = FALSE)
 
 print("loading data")
-load('data/genesEdgerNoOutlier.rda')
-inst = readRDS('analysis/00.cmapRanks/instances.rds')
-rankMatrixL1000 = readRDS('analysis/00.cmapRanks/rankMatrix.rds')
-L1000geneAnnots = readRDS('analysis/00.cmapRanks/L1000geneAnnots.rds')
-L1000PreCalc = readRDS('analysis/00.cmapRanks/L1000PreCalc.rds')
+inst = readRDS('data-raw/lincs1000_data/instances.rds')
+rankMatrixL1000 = readRDS('data-raw/lincs1000_data/rankMatrix.rds')
+L1000geneAnnots = readRDS('data-raw/lincs1000_data/L1000geneAnnots.rds')
+L1000PreCalc = readRDS('data-raw/lincs1000_data/L1000PreCalc.rds')
 rownames(rankMatrixL1000) = L1000geneAnnots$pr_gene_id
 gc()
 
 # fineSubset = inst$pert_iname=='milrinone' & inst$cell_id %in% c('MCF7','PC3') & inst$pert_time <=6
 # inst0 = inst[fineSubset,]
 # rankMatrixL10000 = rankMatrixL1000[,fineSubset]
-
-dataset = genesEdgerNoOutlier
 
 groups = c("E12_1_week_IP_vs_naive_adult_3_IP",
            "E12_2_week_IP_vs_naive_adult_3_IP",
@@ -45,7 +42,7 @@ print('staring run')
 
 groups %>% lapply(function(group){
     print(group)
-    if(any(grepl('FDR_pVal',colnames(dataset)))){
+    if(any(grepl('FDR_pVal',colnames(dif_exp_data)))){
         pVal = 'pVal_'
     } else{
         pVal = ''
@@ -54,7 +51,7 @@ groups %>% lapply(function(group){
                                          FC = as.name(glue('logFC_{group}')),
                                          Pval =  as.name(glue('FDR_{pVal}{group}')))
     
-    upGenes = dataset %>%
+    upGenes = dif_exp_data %>%
         dplyr::filter_(filter_criteriaUp) %>% 
         dplyr::arrange_(.dots = c(glue('desc(logFC_{group})'))) %>% # this line won't be necessary later on
         dplyr::select(gene) %>% 
@@ -67,7 +64,7 @@ groups %>% lapply(function(group){
                                            FC = as.name(glue('logFC_{group}')),
                                            Pval =  as.name(glue('FDR_{pVal}{group}')))
     
-    downGenes = dataset %>%
+    downGenes = dif_exp_data %>%
         dplyr::filter_(filter_criteriaDown) %>% 
         dplyr::arrange_(.dots = c(glue('logFC_{group}'))) %>% # this line won't be necessary later on
         dplyr::select(gene) %>% 
@@ -75,17 +72,17 @@ groups %>% lapply(function(group){
         mouse2human %>% {.$humanGene} %>% unique 
     downTags = L1000geneAnnots %>% filter(pr_gene_symbol %in% downGenes) %$% pr_gene_id
     print('up-genes down-genes acquired')
-    analysis = connectivityMapEnrichment(upTags,
+    analysis = cmapQuery::connectivityMapEnrichment(upTags,
                                          downTags,
-                                         rankMatrixL10000,
-                                         inst0$pert_iname,
+                                         rankMatrixL1000,
+                                         inst$pert_iname,
                                          preCalc = L1000PreCalc,
                                          vocal = TRUE)
     
     print('finished run. writing to file')
     write.table(analysis$chemScores,
-                file = glue('analysis/01.L1000Analysis/L1000Results/chemScores/{groupShorthands[group]}'))
+                file = glue('analysis/02.L1000Analysis/L1000Results/chemScores/{groupShorthands[group]}'))
     write.table(analysis$instanceScores,
-                file = glue('analysis/01.L1000Analysis/L1000Results/instanceScores/{groupShorthands[group]}'))
+                file = glue('analysis/02.L1000Analysis/L1000Results/instanceScores/{groupShorthands[group]}'))
     
 })

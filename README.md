@@ -23,10 +23,10 @@ Precalculated results for every step can be found within this repository. These 
 the instructions to re-generate them from scratch.
 
 'analysis/01.CmapEnrichment' directory contains the code required for running
-basic cmap enrichment. Running "01.ScoreCalc.R" will populate the "results directory"
+basic cmap enrichment. Running "01.ScoreCalc.R" will populate the "results" directory
 'combined.tsv' in this directory includes enrichment score for comparisons.
 
-'analysis/02.L1000Analysis' contains the code required for running comparisons of old
+'analysis/02.L1000Analysis' contains the code required for running comparisons of results using the old
 CMAP dataset with different forms of the new L1000 dataset. Running these scripts in order
-will populate the "results" directory.
+will populate respectively named results directories and generate the comparison [heatmap](analysis/02.L1000Analysis/results/cor_plot.png).
 

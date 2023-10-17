@@ -38,8 +38,6 @@ groupShorthands = c("E12_1_week_IP_vs_naive_adult_3_IP" = 'regen 1 week',
 
 
 
-dataset = 'dif_exp_data'
-
 dir.create('analysis/01.CmapEnrichment/results/tags', showWarnings = FALSE,recursive = TRUE)
 dir.create('analysis/01.CmapEnrichment/results/enrichment/',recursive= TRUE,showWarnings = FALSE)
 dir.create('analysis/01.CmapEnrichment/results/instanceScores/',recursive= TRUE,showWarnings = FALSE)
