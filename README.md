@@ -5,8 +5,7 @@
 ## Installation
 
 Clone the repository and use either `devtools::load_all()` or `devtools::install()` to
-load the required functions and data. Using `devtools::install()` will also install
-package dependencies and is recommended.
+load the required functions and data. These will install all dependencies as well.
 
 ## Acquiring required data and preprocessing
 
