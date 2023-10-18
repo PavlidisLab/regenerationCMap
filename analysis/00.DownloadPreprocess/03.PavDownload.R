@@ -11,7 +11,7 @@ dir.create('data-raw/pav_data')
 natMat = readRDS("/home/nlim/MDE/RScripts/DataFreeze/Packaged/LINCS/GSE92742/fc.matrix.RDS.XZ")
 natInstances = readRDS("/home/nlim/MDE/RScripts/DataFreeze/Packaged/LINCS/GSE92742/Interim/final.assign.mapping.RDS.XZ")
 nat = readRDS("/home/nlim/MDE/RScripts/DataFreeze/Packaged/LINCS/GSE92742/Interim/sample.mapping.RDS.XZ")
-natGeneAnnots = readr::read_tsv('/space/scratch/nlim/LINCS/GSE92742-Level5/Gene_Info.txt')
+natGeneAnnots = readr::read_tsv('data-raw/lincs1000_data/Gene_Info.txt')
 natGeneAnnots = natGeneAnnots[match(rownames(natMat),natGeneAnnots$pr_gene_id),]
 gc()
 
