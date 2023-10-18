@@ -11,7 +11,6 @@ dir.create('analysis/01.L1000Analysis/pavResults/instanceScores',showWarnings = 
 
 
 print("loading data")
-load('data/genesEdgerNoOutlier.rda')
 inst = readRDS('data-raw/pav_data/pavInstances.rds')
 rankMatrix = readRDS('data-raw/pav_data/pavRankMatrix.rds')
 
