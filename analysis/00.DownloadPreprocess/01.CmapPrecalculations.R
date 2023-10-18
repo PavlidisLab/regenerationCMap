@@ -1,7 +1,7 @@
 # save the randomized matrices for quick calculation
 library(memoise)
 library(ConnectivityMap)
-load_all()
+devtools::load_all()
 data("instances")
 data("rankMatrix")
 d = 100000
@@ -12,7 +12,7 @@ randomV = function(length,d){
 memoRandomV = memoise(randomV)
 memoKsCalc = memoise(ksCalc)
 
-instanceLenghts = table(instances$cmap_name)
+instanceLengths = table(instances$cmap_name)
 
 
 allVRandoms = instanceLengths %>% unique %>% sapply(function(x){
@@ -26,5 +26,3 @@ allVRandoms %>% sapply(function(x){
 
 use_data(memoRandomV,overwrite = TRUE)
 use_data(memoKsCalc,overwrite = TRUE)
-
-ksPerm = ksCalc(Vrandoms,nrow(instances))
