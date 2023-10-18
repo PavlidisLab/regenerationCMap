@@ -26,7 +26,7 @@ cmapData = cmapR::parse.gctx("data-raw/lincs1000_data/GSE92742_Broad_LINCS_Level
 gc()
 
 inst = readr::read_tsv('data-raw/lincs1000_data/GSE92742_Broad_LINCS_sig_info.txt.gz')
-L1000geneAnnots = readr::read_tsv('/space/scratch/nlim/LINCS/GSE92742-Level5/Gene_Info.txt')
+L1000geneAnnots = readr::read_tsv('data-raw/lincs1000_data/Gene_Info.txt')
 
 
 instanceOrder = colnames(cmapData@mat)
