@@ -71,7 +71,7 @@ groups %>% lapply(function(group){
         mouse2human %>% {.$humanGene} %>% unique 
     downTags = L1000geneAnnots %>% filter(pr_gene_symbol %in% downGenes) %$% pr_gene_id
     print('up-genes down-genes acquired')
-    analysis = connectivityMapEnrichment(upTags,
+    analysis = cmapQuery::connectivityMapEnrichment(upTags,
                                          downTags,
                                          rankMatrix,
                                          inst$chem,
