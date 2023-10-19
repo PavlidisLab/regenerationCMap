@@ -33,6 +33,6 @@ saveRDS(L1000PreCalc,'data-raw/FWD_data/FWDPreCalc.rds')
 L1000geneAnnots = readRDS('data-raw/pav_data/pavGeneAnnots.rds')
 inst = readRDS('data-raw/pav_data/pavInstances.rds')
     
-L1000PreCalc = preCalcRandomKs(inst$pert_iname)
+L1000PreCalc = preCalcRandomKs(inst$chem)
 saveRDS(L1000PreCalc,'data-raw/pav_data/pavPreCalc.rds')
 
