@@ -20,12 +20,11 @@ download.file("https://ftp.ncbi.nlm.nih.gov/geo/series/GSE92nnn/GSE92742/suppl/G
 gunzip("data-raw/lincs1000_data/GSE92742_Broad_LINCS_Level5_COMPZ.MODZ_n473647x12328.gctx.gz")
 gunzip("data-raw/lincs1000_data/GSE92742_Broad_LINCS_sig_info.txt.gz")
 
-
 cmapData = cmapR::parse.gctx("data-raw/lincs1000_data/GSE92742_Broad_LINCS_Level5_COMPZ.MODZ_n473647x12328.gctx")
 
 gc()
 
-inst = readr::read_tsv('data-raw/lincs1000_data/GSE92742_Broad_LINCS_sig_info.txt.gz')
+inst = readr::read_tsv('data-raw/lincs1000_data/GSE92742_Broad_LINCS_sig_info.txt')
 L1000geneAnnots = readr::read_tsv('data-raw/lincs1000_data/Gene_Info.txt')
 
 
