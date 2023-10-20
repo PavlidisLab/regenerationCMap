@@ -14,7 +14,7 @@ options(java.parameters = "-Xmx1024m")
 # processing differential expression raw data. ----
 # unzip('data-raw/2013-092_CST_IPonly_2017_pipeline.zip',exdir = 'data-raw/dif_exp_data')
 
-dif_exp_data = read_excel('data-raw/ErnaData/DEA_wo_3day_naive_IP1/Complete_geneList_EdgeR.xlsx')
+dif_exp_data = read_excel('data-raw/dif_exp_data/DEA_wo_3day_naive_IP1/Complete_geneList_EdgeR.xlsx')
 usethis::use_data(dif_exp_data,overwrite = TRUE)
 
 # historic download link for the MSigDB gene sets used by the original connectivity map
