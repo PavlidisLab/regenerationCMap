@@ -8,9 +8,9 @@ library(purrr)
 library(usethis)
 library(rhdf5)
 library(cmapR)
+library(parallel)
 # "complete genelist" is taken from erna directly
 options(java.parameters = "-Xmx1024m")
-
 # processing differential expression raw data. ----
 # unzip('data-raw/2013-092_CST_IPonly_2017_pipeline.zip',exdir = 'data-raw/dif_exp_data')
 
