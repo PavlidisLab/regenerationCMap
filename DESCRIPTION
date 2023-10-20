@@ -23,13 +23,13 @@ Imports:
     gplots,
     pheatmap,
     purrr,
-    UpSetR,
-    rhdf5
+    UpSetR
 Remotes:
     bioc::3.17/ConnectivityMap,
     oganm/ogbox,
     bioc::3.17/gemma.R,
     bioc::3.17/cmapR,
-    oganm/cmapQuery
+    oganm/cmapQuery,
+    bioc::3.17/rhdf5
 Depends: 
     R (>= 2.10)
