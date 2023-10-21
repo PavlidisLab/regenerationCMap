@@ -6,8 +6,8 @@ library(magrittr)
 library(glue)
 library(homologene)
 
-dir.create('analysis/02.L1000Analysis/L1000Results/chemScores',showWarnings = FALSE)
-dir.create('analysis/02.L1000Analysis/L1000Results/instanceScores',showWarnings = FALSE)
+dir.create('analysis/02.L1000Analysis/L1000Results/chemScores',showWarnings = FALSE,recursive = TRUE)
+dir.create('analysis/02.L1000Analysis/L1000Results/instanceScores',showWarnings = FALSE,recursive = TRUE)
 
 print("loading data")
 inst = readRDS('data-raw/lincs1000_data/instances.rds')
