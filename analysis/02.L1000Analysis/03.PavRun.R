@@ -6,8 +6,8 @@ library(magrittr)
 library(glue)
 library(homologene)
 
-dir.create('analysis/01.L1000Analysis/pavResults/chemScores',showWarnings = FALSE, recursive = TRUE)
-dir.create('analysis/01.L1000Analysis/pavResults/instanceScores',showWarnings = FALSE, recursive = TRUE)
+dir.create('analysis/02.L1000Analysis/pavResults/chemScores',showWarnings = FALSE, recursive = TRUE)
+dir.create('analysis/02.L1000Analysis/pavResults/instanceScores',showWarnings = FALSE, recursive = TRUE)
 
 
 print("loading data")
