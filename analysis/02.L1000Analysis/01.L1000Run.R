@@ -6,8 +6,8 @@ library(magrittr)
 library(glue)
 library(homologene)
 
-dir.create('analysis/01.L1000Analysis/L1000Results/chemScores',showWarnings = FALSE)
-dir.create('analysis/01.L1000Analysis/L1000Results/instanceScores',showWarnings = FALSE)
+dir.create('analysis/02.L1000Analysis/L1000Results/chemScores',showWarnings = FALSE)
+dir.create('analysis/02.L1000Analysis/L1000Results/instanceScores',showWarnings = FALSE)
 
 print("loading data")
 inst = readRDS('data-raw/lincs1000_data/instances.rds')
@@ -81,8 +81,8 @@ groups %>% lapply(function(group){
     
     print('finished run. writing to file')
     write.table(analysis$chemScores,
-                file = glue('analysis/01.L1000Analysis/L1000Results/chemScores/{groupShorthands[group]}'))
+                file = glue('analysis/02.L1000Analysis/L1000Results/chemScores/{groupShorthands[group]}'))
     write.table(analysis$instanceScores,
-                file = glue('analysis/01.L1000Analysis/L1000Results/instanceScores/{groupShorthands[group]}'))
+                file = glue('analysis/02.L1000Analysis/L1000Results/instanceScores/{groupShorthands[group]}'))
     
 })

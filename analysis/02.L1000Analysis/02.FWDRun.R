@@ -5,8 +5,8 @@ library(magrittr)
 library(glue)
 library(homologene)
 devtools::load_all()
-dir.create('analysis/01.L1000Analysis/fwdResults/chemScores',showWarnings = FALSE,recursive = TRUE)
-dir.create('analysis/01.L1000Analysis/fwdResults/instanceScores',showWarnings = FALSE,recursive = TRUE)
+dir.create('analysis/02.L1000Analysis/fwdResults/chemScores',showWarnings = FALSE,recursive = TRUE)
+dir.create('analysis/02.L1000Analysis/fwdResults/instanceScores',showWarnings = FALSE,recursive = TRUE)
 
 
 print("loading data")
@@ -79,8 +79,8 @@ groups %>% lapply(function(group){
     
     print('finished run. writing to file')
     write.table(analysis$chemScores,
-                file = glue('analysis/01.L1000Analysis/fwdResults/chemScores/{groupShorthands[group]}'))
+                file = glue('analysis/02.L1000Analysis/fwdResults/chemScores/{groupShorthands[group]}'))
     write.table(analysis$instanceScores,
-                file = glue('analysis/01.L1000Analysis/fwdResults/instanceScores/{groupShorthands[group]}'))
+                file = glue('analysis/02.L1000Analysis/fwdResults/instanceScores/{groupShorthands[group]}'))
     
 })
