@@ -4,7 +4,7 @@ library(cmapQuery)
 library(magrittr)
 library(glue)
 library(homologene)
-
+devtools::load_all()
 dir.create('analysis/01.L1000Analysis/fwdResults/chemScores',showWarnings = FALSE,recursive = TRUE)
 dir.create('analysis/01.L1000Analysis/fwdResults/instanceScores',showWarnings = FALSE,recursive = TRUE)
 
