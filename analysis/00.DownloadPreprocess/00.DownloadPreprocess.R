@@ -38,8 +38,7 @@ usethis::use_data(MSigDB,overwrite = TRUE)
 
 
 dir.create('data-raw/GemmaAnnots')
-gemmaAPI::getAnnotation('GPL96',file = 'data-raw/GemmaAnnots/GPL96',overwrite = TRUE)
-# gemmaAPI::getAnnotation('GPL3921',file = 'data-raw/GemmaAnnots/GPL3921_2',overwrite = TRUE)
+gemma.R::get_platform_annotations('GPL96',file = 'data-raw/GemmaAnnots/GPL96',unzip = TRUE,overwrite = TRUE)
 
 
 
