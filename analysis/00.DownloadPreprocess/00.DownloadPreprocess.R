@@ -38,10 +38,10 @@ usethis::use_data(MSigDB,overwrite = TRUE)
 
 
 dir.create('data-raw/GemmaAnnots')
-gemma.R::get_platform_annotations('GPL96',file = 'data-raw/GemmaAnnots/GPL96',unzip = TRUE,overwrite = TRUE)
-
-
-
+gpl96 = gemma.R::get_platform_annotations('GPL96',overwrite = TRUE)
+gpl96 %<>% rename(Probe = ElementName)
+utils::write.table(gpl96, 'data-raw/GemmaAnnots/GPL96', sep = "\t", quote = FALSE, 
+                   row.names = FALSE)
 
 # save the randomized matrices for quick calculation --------
 library(memoise)
