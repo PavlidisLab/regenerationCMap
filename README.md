@@ -22,8 +22,8 @@ Precalculated results for every step can be found within this repository. These 
 the instructions to re-generate them from scratch.
 
 'analysis/01.CmapEnrichment' directory contains the code required for running
-basic cmap enrichment. Running "01.ScoreCalc.R" will populate the "results" directory
-'combined.tsv' in this directory includes enrichment score for comparisons.
+basic cmap enrichment that was used in [van Niekerk et al. 2025](https://www.nature.com/articles/s41586-025-09647-y) paper. Running "01.ScoreCalc.R" will populate the "results" directory
+'combined.tsv' in this directory includes enrichment score for comparisons. You can find the data pre-processing steps for this script [here](analysis/00.DownloadPreprocess/00.DownloadPreprocess.R).
 
 'analysis/02.L1000Analysis' contains the code required for running comparisons of results using the old
 CMAP dataset with different forms of the new L1000 dataset. Running these scripts in order
